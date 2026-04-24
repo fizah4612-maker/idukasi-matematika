@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Legend of Numeria - Game Matematika SMP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@300;400;600&display=swap');
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #f59e0b;
+            --dark: #1e1b4b;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: white;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .font-fantasy { font-family: 'Cinzel', serif; }
+
+        .gradient-bg {
+            background: radial-gradient(circle at center, #312e81 0%, #1e1b4b 100%);
+        }
+
+        .card-gold {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card-gold:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transition: transform 0.2s;
+        }
+
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .floating { animation: float 3s ease-in-out infinite; }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #334155;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+    <!-- Splash Screen / Main Menu -->
+    <div id="main-menu" class="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+        <div class="mb-8 floating">
+            <i class="fas fa-scroll text-6xl text-yellow-400 mb-4"></i>
+            <h1 class="text-5xl md:text-7xl font-fantasy text-yellow-500 tracking-wider">THE LEGEND OF</h1>
+            <h2 class="text-4xl md:text-6xl font-fantasy text-white">NUMERIA</h2>
+        </div>
+
+        <p class="text-gray-300 mb-10 max-w-lg">Selamatkan kerajaan dari kekacauan angka! Pilih mode bermainmu dan buktikan kecerdasanmu.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+            <!-- Mode Solo -->
+            <button onclick="startGame('solo')" class="card-gold p-8 flex flex-col items-center">
+                <i class="fas fa-user text-4xl mb-4 text-blue-400"></i>
+                <h3 class="text-xl font-bold">SOLO</h3>
+                <p class="text-sm text-gray-400">Petualangan Sendiri</p>
+            </button>
+
+            <!-- Mode Duel -->
+            <button onclick="startGame('duel')" class="card-gold p-8 flex flex-col items-center border-pink-500">
+                <i class="fas fa-bolt text-4xl mb-4 text-pink-500"></i>
+                <h3 class="text-xl font-bold">DUEL</h3>
+                <p class="text-sm text-gray-400">1 Lawan 1</p>
+            </button>
+
+            <!-- Mode Squad -->
+            <button onclick="startGame('squad')" class="card-gold p-8 flex flex-col items-center border-green-500">
+                <i class="fas fa-users text-4xl mb-4 text-green-500"></i>
+                <h3 class="text-xl font-bold">SQUAD</h3>
+                <p class="text-sm text-gray-400">Misi Berkelompok</p>
+            </button>
+        </div>
+
+        <div class="mt-12">
+            <button id="music-toggle" onclick="toggleMusic()" class="bg-gray-800 p-4 rounded-full border border-gray-600 hover:bg-gray-700 transition">
+                <i id="music-icon" class="fas fa-music text-yellow-500"></i>
+                <span class="ml-2 text-sm">Lagu: Aku Cinta Matematika</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden min-h-screen p-4 flex flex-col">
+        <!-- Header Game -->
+        <div class="flex justify-between items-center bg-indigo-900/50 p-4 rounded-xl mb-6">
+            <div class="flex items-center gap-3">
+                <button onclick="showMenu()" class="text-gray-400 hover:text-white"><i class="fas fa-chevron-left"></i></button>
+                <span id="mode-display" class="font-fantasy text-yellow-400">MODE: SOLO</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 uppercase">Skor</p>
+                    <p id="score" class="text-xl font-bold text-white">0</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-400 uppercase">Waktu</p>
+                    <p id="timer" class="text-xl font-bold text-pink-400">30s</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quest Card -->
+        <div class="flex-grow flex flex-col items-center justify-center">
+            <div class="w-full max-w-2xl bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full progress-bar">
+                    <div id="time-progress" class="progress-fill"></div>
+                </div>
+
+                <div class="text-center mb-8">
+                    <span id="grade-label" class="bg-yellow-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-bold mb-4 inline-block">KELAS 7 - ALJABAR</span>
+                    <h2 id="question-text" class="text-2xl md:text-3xl font-semibold leading-relaxed mt-4">
+                        Jika 2x + 5 = 15, berapakah nilai x?
+                    </h2>
+                </div>
+
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Tombol jawaban akan di-render di sini -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Feedback -->
+        <div id="feedback" class="h-16 flex items-center justify-center text-lg font-bold opacity-0 transition-opacity">
+            Jawaban Benar! +10 Poin
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="result-modal" class="hidden fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-6">
+        <div class="bg-indigo-900 border-2 border-yellow-500 rounded-3xl p-10 max-w-md w-full text-center">
+            <i class="fas fa-trophy text-6xl text-yellow-500 mb-6"></i>
+            <h2 class="text-3xl font-fantasy mb-2">MISI SELESAI</h2>
+            <p id="final-stats" class="text-gray-300 mb-8">Kamu berhasil mengumpulkan 150 poin untuk Numeria!</p>
+            <div class="space-y-4">
+                <button onclick="restartGame()" class="w-full py-4 btn-action rounded-xl font-bold uppercase tracking-widest">Main Lagi</button>
+                <button onclick="showMenu()" class="w-full py-4 bg-gray-800 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-700 transition">Ke Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Game - Kurikulum SMP Kelas 7, 8, 9
+        const questions = [
+            { q: "Jika 3x - 7 = 14, maka nilai x adalah...", a: ["7", "6", "5", "8"], correct: 0, grade: 7, topic: "Aljabar" },
+            { q: "Hasil dari -12 + 7 × (-2) adalah...", a: ["-26", "-10", "2", "-2"], correct: 0, grade: 7, topic: "Bilangan" },
+            { q: "Gradien garis yang melalui titik (0,0) dan (2,4) adalah...", a: ["2", "1/2", "-2", "4"], correct: 0, grade: 8, topic: "Persamaan Garis" },
+            { q: "Luas permukaan kubus dengan rusuk 5 cm adalah...", a: ["150 cm²", "125 cm²", "100 cm²", "75 cm²"], correct: 0, grade: 8, topic: "Bangun Ruang" },
+            { q: "Akar-akar dari persamaan x² - 5x + 6 = 0 adalah...", a: ["2 dan 3", "1 dan 6", "-2 dan -3", "2 dan -3"], correct: 0, grade: 9, topic: "Persamaan Kuadrat" },
+            { q: "Volume kerucut dengan r=7cm dan t=12cm adalah... (π=22/7)", a: ["616 cm³", "154 cm³", "1848 cm³", "308 cm³"], correct: 0, grade: 9, topic: "Bangun Ruang Sisi Lengkung" },
+            { q: "Himpunan penyelesaian dari 2x < 10 untuk x bilangan asli adalah...", a: ["{1,2,3,4}", "{1,2,3,4,5}", "{0,1,2,3,4}", "{2,4}"], correct: 0, grade: 7, topic: "Pertidaksamaan" },
+            { q: "Median dari data: 5, 7, 8, 6, 9, 10, 6 adalah...", a: ["7", "6", "8", "7.5"], correct: 0, grade: 8, topic: "Statistika" }
+        ];
+
+        let currentMode = 'solo';
+        let currentQuestion = null;
+        let score = 0;
+        let timer = 30;
+        let timerInterval;
+        let audioContext;
+        let isMusicPlaying = false;
+
+        // Audio System - Synthesizer "Aku Cinta Matematika"
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playNote(freq, duration, startTime) {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, startTime);
+            
+            gain.gain.setValueAtTime(0.1, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
+
+        function playThemeSong() {
+            if (!isMusicPlaying) return;
+            const now = audioContext.currentTime;
+            // Melodi sederhana: C4, E4, G4, C5 (Aku Cinta Matematika)
+            const melody = [
+                {f: 261.63, d: 0.5}, {f: 329.63, d: 0.5}, {f: 392.00, d: 0.5}, {f: 523.25, d: 1.0},
+                {f: 440.00, d: 0.5}, {f: 392.00, d: 0.5}, {f: 349.23, d: 0.5}, {f: 261.63, d: 1.0}
+            ];
+            
+            let time = now;
+            melody.forEach(note => {
+                playNote(note.f, note.d, time);
+                time += note.d + 0.1;
+            });
+            
+            // Loop lagu
+            setTimeout(() => { if(isMusicPlaying) playThemeSong(); }, 6000);
+        }
+
+        function toggleMusic() {
+            if (!audioContext) initAudio();
+            isMusicPlaying = !isMusicPlaying;
+            const icon = document.getElementById('music-icon');
+            if (isMusicPlaying) {
+                icon.className = 'fas fa-pause text-pink-500';
+                playThemeSong();
+            } else {
+                icon.className = 'fas fa-music text-yellow-500';
+            }
+        }
+
+        // Core Game Logic
+        function startGame(mode) {
+            currentMode = mode;
+            score = 0;
+            timer = mode === 'duel' ? 15 : 30; // Duel lebih cepat
+            
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('mode-display').innerText = `MODE: ${mode.toUpperCase()}`;
+            document.getElementById('score').innerText = score;
+            
+            nextQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const totalTime = timer;
+            timerInterval = setInterval(() => {
+                timer--;
+                document.getElementById('timer').innerText = timer + 's';
+                
+                const percent = (timer / totalTime) * 100;
+                document.getElementById('time-progress').style.width = percent + '%';
+
+                if (timer <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            const rand = Math.floor(Math.random() * questions.length);
+            currentQuestion = questions[rand];
+            
+            document.getElementById('grade-label').innerText = `KELAS ${currentQuestion.grade} - ${currentQuestion.topic.toUpperCase()}`;
+            document.getElementById('question-text').innerText = currentQuestion.q;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            // Shuffle options
+            let options = currentQuestion.a.map((text, index) => ({ text, index }));
+            options.sort(() => Math.random() - 0.5);
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "p-4 bg-white/10 border border-white/20 rounded-2xl hover:bg-white/20 transition-all text-lg font-medium";
+                btn.innerText = opt.text;
+                btn.onclick = () => checkAnswer(opt.index, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(index, element) {
+            const feedback = document.getElementById('feedback');
+            feedback.style.opacity = '1';
+
+            if (index === currentQuestion.correct) {
+                score += 10;
+                document.getElementById('score').innerText = score;
+                element.classList.add('bg-green-500/50', 'border-green-400');
+                feedback.innerText = "Jawaban Benar! +10 Poin";
+                feedback.className = "h-16 flex items-center justify-center text-lg font-bold text-green-400";
+                
+                // Tambah waktu sedikit jika benar di mode Solo/Squad
+                if(currentMode !== 'duel') timer += 2;
+                
+            } else {
+                element.classList.add('bg-red-500/50', 'border-red-400');
+                feedback.innerText = "Kurang Tepat! Tetap Semangat!";
+                feedback.className = "h-16 flex items-center justify-center text-lg font-bold text-red-400";
+                timer -= 3;
+            }
+
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+                nextQuestion();
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').classList.remove('hidden');
+            let message = "";
+            if (currentMode === 'solo') message = `Pahlawan! Kamu berhasil mengumpulkan ${score} poin untuk menyelamatkan Numeria!`;
+            if (currentMode === 'duel') message = `Pertarungan sengit! Skor akhirmu adalah ${score}. Apakah kamu pemenangnya?`;
+            if (currentMode === 'squad') message = `Kerja sama yang hebat! Squad-mu menyumbang ${score} energi kristal matematika!`;
+            
+            document.getElementById('final-stats').innerText = message;
+        }
+
+        function showMenu() {
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').classList.add('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('result-modal').classList.add('hidden');
+            startGame(currentMode);
+        }
+    </script>
+</body>
+</html>
